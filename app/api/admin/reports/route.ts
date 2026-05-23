@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       monthly: [...monthly.values()],
       totalRevenue: transactions.reduce(
-        (total, transaction) => total + Number(transaction.totalPrice),
+        (total: number, transaction: any) => total + Number(transaction.totalPrice),
         0,
       ),
       totalTransactions: transactions.length,
