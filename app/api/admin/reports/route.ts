@@ -36,12 +36,17 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({
-      monthly: [...monthly.values()],
-      totalRevenue: transactions.reduce(
-        (total: number, transaction: any) => total + Number(transaction.totalPrice),
-        0,
-      ),
-      totalTransactions: transactions.length,
+      monthly: [...monthly.values()].map((month) => ({
+        ...month,
+        totalRevenue: transactions.reduce(
+          (
+            total: number,
+            transaction: any
+          ) => total + Number(transaction.totalPrice ?? 0),
+          0
+        ),
+        totalTransactions: transactions.length,
+      })),
     });
   } catch (error) {
     return handleRouteError(error);
