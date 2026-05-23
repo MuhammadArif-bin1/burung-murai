@@ -1,65 +1,125 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import Image from "next/image";
+import Link from "next/link";
+import { BadgeCheck, CreditCard, Search, ShieldCheck } from "lucide-react";
+import { BirdCard } from "@/components/bird-card";
+import { useStore } from "@/components/providers/store-provider";
+
+const features = [
+  {
+    title: "Katalog terbuka",
+    description: "Pembeli bisa melihat stok, harga, lokasi, dan kondisi murai sebelum checkout.",
+    icon: Search,
+  },
+  {
+    title: "Pembayaran rapi",
+    description: "Bank dan e-wallet dipisahkan, lalu bukti pembayaran masuk ke riwayat transaksi.",
+    icon: CreditCard,
+  },
+  {
+    title: "Verifikasi admin",
+    description: "Admin bisa memeriksa pembayaran dan memperbarui status transaksi.",
+    icon: ShieldCheck,
+  },
+];
+
+export default function HomePage() {
+  const { birds, categories, currentUser } = useStore();
+  const featuredBirds = birds
+    .filter((bird) => bird.isFeatured || bird.status === "AVAILABLE")
+    .slice(0, 3);
+  const dashboardHref = currentUser?.role === "USER" ? "/dashboard" : "/admin";
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
+    <>
+      <section className="relative overflow-hidden bg-emerald-950 text-white">
         <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
+          src="/images/hero-murai.png"
+          alt="Murai batu premium"
+          fill
           priority
+          className="object-cover opacity-45"
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+        <div className="absolute inset-0 bg-gradient-to-r from-emerald-950 via-emerald-950/85 to-emerald-950/35" />
+        <div className="relative mx-auto grid min-h-[520px] max-w-7xl items-center gap-8 px-4 py-16 sm:px-6 lg:grid-cols-[1fr_380px] lg:px-8">
+          <div className="max-w-3xl">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/12 px-3 py-1 text-sm font-semibold text-emerald-50">
+              <BadgeCheck className="size-4" />
+              Marketplace burung murai siap transaksi
+            </div>
+            <h1 className="mt-5 text-4xl font-bold leading-tight sm:text-5xl">
+              MuraiMarket
+            </h1>
+            <p className="mt-4 max-w-2xl text-base leading-7 text-emerald-50 sm:text-lg">
+              Platform jual beli burung murai dengan katalog publik, checkout pembeli,
+              upload bukti pembayaran, struk, dan panel admin untuk verifikasi.
+            </p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Link
+                href="/burung"
+                className="rounded-md bg-amber-300 px-5 py-3 text-center font-semibold text-emerald-950 hover:bg-amber-200"
+              >
+                Lihat katalog
+              </Link>
+              <Link
+                href={currentUser ? dashboardHref : "/login"}
+                className="rounded-md border border-white/40 px-5 py-3 text-center font-semibold text-white hover:bg-white/10"
+              >
+                {currentUser ? "Buka dashboard" : "Masuk untuk transaksi"}
+              </Link>
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-white/15 bg-white/10 p-5 backdrop-blur">
+            <p className="text-sm font-semibold text-emerald-100">Ringkasan marketplace</p>
+            <div className="mt-4 grid gap-3">
+              {[
+                { label: "Burung tersedia", value: birds.filter((bird) => bird.status === "AVAILABLE").length },
+                { label: "Kategori", value: categories.length },
+                { label: "Metode bayar", value: "Bank + E-wallet" },
+              ].map((item) => (
+                <div
+                  key={item.label}
+                  className="flex items-center justify-between rounded-md bg-white/10 px-4 py-3"
+                >
+                  <span className="text-sm text-emerald-50">{item.label}</span>
+                  <span className="font-bold">{item.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </section>
+
+      <section className="mx-auto grid w-full max-w-7xl gap-4 px-4 py-10 sm:px-6 md:grid-cols-3 lg:px-8">
+        {features.map(({ title, description, icon: Icon }) => (
+          <article key={title} className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+            <Icon className="size-6 text-emerald-800" />
+            <h2 className="mt-4 text-lg font-semibold text-slate-950">{title}</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-500">{description}</p>
+          </article>
+        ))}
+      </section>
+
+      <section className="mx-auto w-full max-w-7xl px-4 pb-12 sm:px-6 lg:px-8">
+        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-emerald-700">
+              Pilihan unggulan
+            </p>
+            <h2 className="mt-1 text-2xl font-bold text-slate-950">Murai siap dipinang</h2>
+          </div>
+          <Link href="/burung" className="text-sm font-semibold text-emerald-800">
+            Semua katalog
+          </Link>
         </div>
-      </main>
-    </div>
+        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+          {featuredBirds.map((bird) => (
+            <BirdCard key={bird.id} bird={bird} />
+          ))}
+        </div>
+      </section>
+    </>
   );
 }

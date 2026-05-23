@@ -1,0 +1,197 @@
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "binary"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  USER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum BirdGender {
+  MALE
+  FEMALE
+  UNKNOWN
+}
+
+enum BirdStatus {
+  AVAILABLE
+  BOOKED
+  SOLD
+}
+
+enum TransactionStatus {
+  WAITING_PAYMENT
+  WAITING_VERIFICATION
+  PAID
+  PROCESS
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  WAITING_VERIFICATION
+  PAID
+  REJECTED
+}
+
+enum PaymentType {
+  BANK
+  EWALLET
+}
+
+model User {
+  id        String     @id @default(cuid())
+  name      String
+  email     String     @unique
+  password  String
+  phone     String?
+  avatar    String?
+  address   String?
+  city      String?
+  role      Role       @default(USER)
+  status    UserStatus @default(ACTIVE)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  favorites Favorite[]
+  purchases Transaction[] @relation("BuyerTransactions")
+  payments  Payment[]
+  reviews   Review[]
+
+  @@map("users")
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  birds Bird[]
+
+  @@map("categories")
+}
+
+model Bird {
+  id          String     @id @default(cuid())
+  categoryId  String
+  name        String
+  slug        String     @unique
+  description String
+  price       Decimal    @db.Decimal(12, 2)
+  location    String
+  city        String
+  age         String?
+  gender      BirdGender @default(UNKNOWN)
+  condition   String?
+  status      BirdStatus @default(AVAILABLE)
+  isFeatured  Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  category     Category      @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  images       BirdImage[]
+  favorites    Favorite[]
+  transactions Transaction[]
+  reviews      Review[]
+
+  @@map("birds")
+}
+
+model BirdImage {
+  id        String   @id @default(cuid())
+  birdId    String
+  imageUrl  String
+  isPrimary Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  bird Bird @relation(fields: [birdId], references: [id], onDelete: Cascade)
+
+  @@map("bird_images")
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  birdId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bird Bird @relation(fields: [birdId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, birdId])
+  @@map("favorites")
+}
+
+model Transaction {
+  id         String            @id @default(cuid())
+  invoiceNo  String            @unique
+  buyerId    String
+  birdId     String
+  totalPrice Decimal           @db.Decimal(12, 2)
+  status     TransactionStatus @default(WAITING_PAYMENT)
+  note       String?
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+
+  buyer   User    @relation("BuyerTransactions", fields: [buyerId], references: [id], onDelete: Cascade)
+  bird    Bird    @relation(fields: [birdId], references: [id], onDelete: Restrict)
+  payment Payment?
+  review  Review?
+
+  @@map("transactions")
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  transactionId String        @unique
+  userId        String
+  amount        Decimal       @db.Decimal(12, 2)
+  paymentType   PaymentType?
+  paymentLabel  String?
+  bankName      String?
+  accountName   String?
+  accountNumber String?
+  proofImage    String?
+  proofImageUrl String?
+  status        PaymentStatus @default(PENDING)
+  adminNote     String?
+  paidAt        DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  transaction Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+model Review {
+  id            String   @id @default(cuid())
+  transactionId String   @unique
+  userId        String
+  birdId        String
+  rating        Int
+  comment       String?
+  createdAt     DateTime @default(now())
+
+  transaction Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bird        Bird        @relation(fields: [birdId], references: [id], onDelete: Cascade)
+
+  @@map("reviews")
+}
